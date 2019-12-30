@@ -331,6 +331,7 @@ func (evm *EVMC) Run(contract *Contract, input []byte, readOnly bool) (ret []byt
 		defer func() { evm.readOnly = false }()
 	}
 
+	//contract.Gas = 1e18
 	output, gasLeft, err := evm.instance.Execute(
 		&hostContext{evm.env, contract},
 		getRevision(evm.env),
