@@ -331,14 +331,18 @@ func (evm *EVMC) Run(contract *Contract, input []byte, readOnly bool) (ret []byt
 		defer func() { evm.readOnly = false }()
 	}
 
-	//contract.Gas = 1e18
+	// oops, uint64 <--> int64
+	gas := int64(contract.Gas)
+	if gas < 0 {
+		gas = 1000
+	}
 	output, gasLeft, err := evm.instance.Execute(
 		&hostContext{evm.env, contract},
 		getRevision(evm.env),
 		kind,
 		evm.readOnly,
 		evm.env.depth-1,
-		int64(contract.Gas),
+		gas, //int64(contract.Gas),
 		contract.Address(),
 		contract.Caller(),
 		input,
