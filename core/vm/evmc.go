@@ -333,6 +333,7 @@ func (evm *EVMC) Run(contract *Contract, input []byte, readOnly bool) (ret []byt
 
 	// oops, uint64 <--> int64
 	gas := int64(contract.Gas)
+	log.Info("EVMC VM Run", "gas:", gas)
 	if gas < 0 {
 		gas = 1000
 	}
