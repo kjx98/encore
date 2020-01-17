@@ -149,6 +149,14 @@ var (
 		utils.EWASMInterpreterFlag,
 		utils.EVMInterpreterFlag,
 		configFileFlag,
+		// Encore
+		utils.RaftModeFlag,
+		utils.RaftBlockTimeFlag,
+		utils.RaftJoinExistingFlag,
+		utils.RaftPortFlag,
+		utils.RaftDNSEnabledFlag,
+		utils.EmitCheckpointsFlag,
+		// End-Encore
 	}
 
 	rpcFlags = []cli.Flag{
@@ -315,6 +323,10 @@ func geth(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	defer node.Close()
 	startNode(ctx, node)
+
+	// Check if a valid consensus is used
+	validateConsensus(node, ctx.GlobalBool(utils.RaftModeFlag.Name))
+
 	node.Wait()
 	return nil
 }

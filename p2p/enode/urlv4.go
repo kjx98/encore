@@ -72,24 +72,19 @@ func ParseV4(rawurl string) (*Node, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid public key (%v)", err)
 		}
-		return NewV4(id, nil, 0, 0), nil
+		return NewV4(id, nil, 0, 0, 0), nil
 	}
 	return parseComplete(rawurl)
 }
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int, raftPort int) *Node {
 	var r enr.Record
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
 	}
-	if udp != 0 {
-		r.Set(enr.UDP(udp))
-	}
-	if tcp != 0 {
-		r.Set(enr.TCP(tcp))
-	}
+	return newV4(pubkey, r, tcp, udp, raftPort)
 	signV4Compat(&r, pubkey)
 	n, err := New(v4CompatID{}, &r)
 	if err != nil {
@@ -97,6 +92,43 @@ func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
 	}
 	return n
 }
+
+// broken out from `func NewV4` (above) same in upstream go-ethereum, but taken out
+// to avoid code duplication b/t NewV4 and NewV4Hostname
+func newV4(pubkey *ecdsa.PublicKey, r enr.Record, tcp, udp, raftPort int) *Node {
+	if udp != 0 {
+		r.Set(enr.UDP(udp))
+	}
+	if tcp != 0 {
+		r.Set(enr.TCP(tcp))
+	}
+
+	if raftPort != 0 { // Quorum
+		r.Set(enr.RaftPort(raftPort))
+	}
+
+	signV4Compat(&r, pubkey)
+	n, err := New(v4CompatID{}, &r)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+// Encore
+
+// NewV4Hostname creates a node from discovery v4 node information. The record
+// contained in the node has a zero-length signature. It sets the hostname of
+// the node instead of the IP address.
+func NewV4Hostname(pubkey *ecdsa.PublicKey, hostname string, tcp, udp, raftPort int) *Node {
+	var r enr.Record
+	if hostname != "" {
+		r.Set(enr.Hostname(hostname))
+	}
+	return newV4(pubkey, r, tcp, udp, raftPort)
+}
+
+// End-Encore
 
 // isNewV4 returns true for nodes created by NewV4.
 func isNewV4(n *Node) bool {
@@ -146,7 +178,30 @@ func parseComplete(rawurl string) (*Node, error) {
 			return nil, errors.New("invalid discport in query")
 		}
 	}
-	return NewV4(id, ip, int(tcpPort), int(udpPort)), nil
+
+	var node *Node
+
+	// Encore
+	if qv.Get("raftport") != "" {
+		raftPort, err := strconv.ParseUint(qv.Get("raftport"), 10, 16)
+		if err != nil {
+			return nil, errors.New("invalid raftport in query")
+		}
+		node = NewV4Hostname(id, u.Hostname(), int(tcpPort), int(udpPort), int(raftPort))
+	} else {
+		node = NewV4Hostname(id, u.Hostname(), int(tcpPort), int(udpPort), 0)
+	}
+	// End-Encore
+
+	return node, nil
+}
+
+func HexPubkey(h string) (*ecdsa.PublicKey, error) {
+	k, err := parsePubkey(h)
+	if err != nil {
+		return nil, err
+	}
+	return k, err
 }
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
@@ -159,6 +214,24 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 	}
 	b = append([]byte{0x4}, b...)
 	return crypto.UnmarshalPubkey(b)
+}
+
+// used by Encore RAFT - to derive enodeID
+func (n *Node) EnodeID() string {
+	var (
+		scheme enr.ID
+		nodeid string
+		key    ecdsa.PublicKey
+	)
+	n.Load(&scheme)
+	n.Load((*Secp256k1)(&key))
+	switch {
+	case scheme == "v4" || key != ecdsa.PublicKey{}:
+		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
+	default:
+		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
+	}
+	return nodeid
 }
 
 func (n *Node) URLv4() string {

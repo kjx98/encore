@@ -1547,3 +1547,8 @@ func (t *txLookup) Remove(hash common.Hash) {
 
 	delete(t.all, hash)
 }
+
+// helper function to return chainHeadChannel size
+func GetChainHeadChannleSize() int {
+	return chainHeadChanSize
+}

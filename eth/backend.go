@@ -64,7 +64,8 @@ type LesServer interface {
 
 // Ethereum implements the Ethereum full node service.
 type Ethereum struct {
-	config *Config
+	config      *Config
+	chainConfig *params.ChainConfig
 
 	// Channel for shutting down the service
 	shutdownChan chan bool
@@ -95,6 +96,11 @@ type Ethereum struct {
 	netRPCService *ethapi.PublicNetAPI
 
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and etherbase)
+}
+
+// HACK(joel) this was added just to make the eth chain config visible to RegisterRaftService
+func (s *Ethereum) ChainConfig() *params.ChainConfig {
+	return s.chainConfig
 }
 
 func (s *Ethereum) AddLesServer(ls LesServer) {
@@ -207,7 +213,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}
-	if eth.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, eth.eventMux, eth.txPool, eth.engine, eth.blockchain, chainDb, cacheLimit, config.Whitelist); err != nil {
+	if eth.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, eth.eventMux, eth.txPool, eth.engine, eth.blockchain, chainDb, cacheLimit, config.Whitelist, config.RaftMode); err != nil {
 		return nil, err
 	}
 	eth.miner = miner.New(eth, &config.Miner, chainConfig, eth.EventMux(), eth.engine, eth.isLocalBlock)
@@ -561,4 +567,8 @@ func (s *Ethereum) Stop() error {
 	s.chainDb.Close()
 	close(s.shutdownChan)
 	return nil
+}
+
+func (s *Ethereum) CalcGasLimit(block *types.Block) uint64 {
+	return core.CalcGasLimit(block, s.config.Miner.GasFloor, s.config.Miner.GasCeil)
 }

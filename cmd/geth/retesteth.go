@@ -272,6 +272,11 @@ func (e *NoRewardEngine) Close() error {
 	return e.inner.Close()
 }
 
+// Protocol implements consensus.Engine.Protocol
+func (e *NoRewardEngine) Protocol() consensus.Protocol {
+	return consensus.EthProtocol
+}
+
 func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error) {
 	// Clean up
 	if api.blockchain != nil {

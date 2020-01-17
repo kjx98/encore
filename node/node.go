@@ -17,6 +17,7 @@
 package node
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"net"
@@ -552,6 +553,13 @@ func (n *Node) Service(service interface{}) error {
 		return nil
 	}
 	return ErrServiceUnknown
+}
+
+// Encore
+//
+// delegate call to node.Config
+func (n *Node) GetNodeKey() *ecdsa.PrivateKey {
+	return n.config.NodeKey()
 }
 
 // DataDir retrieves the current datadir used by the protocol stack.
