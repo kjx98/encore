@@ -27,7 +27,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Number      *hexutil.Big   `json:"number"           gencodec:"required"`
 		GasLimit    hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
 		GasUsed     hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
-		TimeMilli   hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
+		Time        hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   common.Hash    `json:"mixHash"`
 		Nonce       BlockNonce     `json:"nonce"`
@@ -45,7 +45,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.Number = (*hexutil.Big)(h.Number)
 	enc.GasLimit = hexutil.Uint64(h.GasLimit)
 	enc.GasUsed = hexutil.Uint64(h.GasUsed)
-	enc.TimeMilli = hexutil.Uint64(h.TimeMilli)
+	enc.Time = hexutil.Uint64(h.TimeMilli / 1000)
 	enc.Extra = h.Extra
 	enc.MixDigest = h.MixDigest
 	enc.Nonce = h.Nonce
@@ -67,7 +67,7 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		Number      *hexutil.Big    `json:"number"           gencodec:"required"`
 		GasLimit    *hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
 		GasUsed     *hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
-		TimeMilli   *hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
+		Time        *hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       *hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   *common.Hash    `json:"mixHash"`
 		Nonce       *BlockNonce     `json:"nonce"`
@@ -120,10 +120,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'gasUsed' for Header")
 	}
 	h.GasUsed = uint64(*dec.GasUsed)
-	if dec.TimeMilli == nil {
+	if dec.Time == nil {
 		return errors.New("missing required field 'timestamp' for Header")
 	}
-	h.TimeMilli = uint64(*dec.TimeMilli)
+	h.TimeMilli = uint64(*dec.Time) * 1000
 	if dec.Extra == nil {
 		return errors.New("missing required field 'extraData' for Header")
 	}

@@ -722,6 +722,7 @@ func CliqueRLP(header *types.Header) []byte {
 }
 
 func encodeSigHeader(w io.Writer, header *types.Header) {
+	// use Time() for hasher instead of TimeMilli, Encore
 	err := rlp.Encode(w, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
@@ -734,7 +735,7 @@ func encodeSigHeader(w io.Writer, header *types.Header) {
 		header.Number,
 		header.GasLimit,
 		header.GasUsed,
-		header.TimeMilli,
+		header.Time(),
 		header.Extra[:len(header.Extra)-crypto.SignatureLength], // Yes, this will panic if extra is too short
 		header.MixDigest,
 		header.Nonce,
