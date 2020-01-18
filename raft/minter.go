@@ -238,11 +238,23 @@ func (minter *minter) mintingLoop() {
 	}
 }
 
+func generateMilliTimestamp(parent *types.Block) (tstamp uint64) {
+	parentTime := parent.TimeMilli()
+	tstamp = uint64(time.Now().Unix()*1000 + int64(time.Now().Nanosecond()/1000000))
+
+	if parentTime >= tstamp {
+		// Each successive block needs to be after its predecessor.
+		tstamp = parentTime + 1
+	}
+
+	return
+}
+
 // Assumes mu is held.
 func (minter *minter) createWork() *work {
 	parent := minter.speculativeChain.head
 	parentNumber := parent.Number()
-	tstamp := parent.Time()
+	tstamp := generateMilliTimestamp(parent)
 
 	header := &types.Header{
 		ParentHash: parent.Hash(),
@@ -251,7 +263,7 @@ func (minter *minter) createWork() *work {
 		GasLimit:   minter.eth.calcGasLimitFunc(parent),
 		GasUsed:    0,
 		Coinbase:   minter.coinbase,
-		Time:       uint64(time.Now().Unix()),
+		TimeMilli:  tstamp,
 	}
 
 	state, err := minter.chain.StateAt(parent.Root())
@@ -344,7 +356,7 @@ func (minter *minter) mintNewBlock() {
 
 	minter.mux.Post(core.NewMinedBlockEvent{Block: block})
 
-	elapsed := time.Since(time.Unix(int64(header.Time), 0))
+	elapsed := time.Since(time.Unix(int64(header.Time()), header.Nanosecond()))
 	log.Info("🔨  Mined block", "number", block.Number(), "hash", fmt.Sprintf("%x", block.Hash().Bytes()[:4]), "elapsed", elapsed)
 }
 
