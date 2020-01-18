@@ -585,6 +585,7 @@ func (ethash *Ethash) FinalizeAndAssemble(chain consensus.ChainReader, header *t
 func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 	hasher := sha3.NewLegacyKeccak256()
 
+	// use Time() for hasher instead of TimeMilli, Encore
 	rlp.Encode(hasher, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
@@ -597,7 +598,7 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 		header.Number,
 		header.GasLimit,
 		header.GasUsed,
-		header.TimeMilli,
+		header.Time(),
 		header.Extra,
 	})
 	hasher.Sum(hash[:0])
