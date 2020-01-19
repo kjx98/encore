@@ -55,6 +55,7 @@ func TestProtocolManager_whenAppliedIndexOutOfSync(t *testing.T) {
 			raftNodes[i] = s
 		}
 	}
+	logger.Info("start raft enode done")
 	waitFunc := func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
@@ -93,6 +94,7 @@ func TestProtocolManager_whenAppliedIndexOutOfSync(t *testing.T) {
 			raftNodes[i] = s
 		}
 	}
+	logger.Debug("restart the cluster done")
 	waitFunc()
 }
 
@@ -171,6 +173,7 @@ func startRaftNode(id, port uint16, tmpWorkingDir string, key *ecdsa.PrivateKey,
 		return nil, err
 	}
 
+	// Encore
 	e, err := eth.New(ctx, &eth.Config{
 		Genesis: &core.Genesis{Config: params.TestChainConfig},
 	})

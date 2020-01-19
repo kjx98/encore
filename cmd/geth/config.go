@@ -285,7 +285,10 @@ func validateConsensus(stack *node.Node, isRaft bool) {
 		utils.Fatalf("Error retrieving Ethereum service: %v", err)
 	}
 
-	if !isRaft && ethereum.ChainConfig().Clique == nil {
-		utils.Fatalf("Consensus not specified. Exiting!!")
-	}
+	// Encore
+	/*
+		if !isRaft && ethereum.ChainConfig().Clique == nil {
+			utils.Fatalf("Consensus not specified. Exiting!!")
+		}
+	*/
 }

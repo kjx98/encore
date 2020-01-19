@@ -38,20 +38,28 @@ func newAddress(raftId uint16, raftPort int, node *enode.Node, withHostname bool
 	if err != nil {
 		panic(err)
 	}
+	// Encore
 	if withHostname {
+		// Parse the IP address.
+		ips, err := net.LookupIP(node.Host())
+		if err != nil {
+			log.Fatalf("failed to lookup Host %s Address: %v", node.Host(), err)
+			panic(err)
+		}
 		return &Address{
 			RaftId:   raftId,
 			NodeId:   id,
-			Ip:       nil,
+			Ip:       ips[0],
 			P2pPort:  enr.TCP(node.TCP()),
 			RaftPort: enr.RaftPort(raftPort),
 			Hostname: node.Host(),
 		}
 	}
+
 	return &Address{
 		RaftId:   raftId,
 		NodeId:   id,
-		Ip:       nil,
+		Ip:       node.IP(),
 		P2pPort:  enr.TCP(node.TCP()),
 		RaftPort: enr.RaftPort(raftPort),
 		Hostname: node.IP().String(),

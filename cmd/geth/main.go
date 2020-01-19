@@ -324,6 +324,7 @@ func geth(ctx *cli.Context) error {
 	defer node.Close()
 	startNode(ctx, node)
 
+	// Encore
 	// Check if a valid consensus is used
 	validateConsensus(node, ctx.GlobalBool(utils.RaftModeFlag.Name))
 
