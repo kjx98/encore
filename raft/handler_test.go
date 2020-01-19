@@ -85,19 +85,19 @@ func TestProtocolManager_whenAppliedIndexOutOfSync(t *testing.T) {
 	if err := writeAppliedIndex(tmpWorkingDir, 0, 1); err != nil {
 		t.Fatal(err)
 	}
-	/*
-		//time.Sleep(3 * time.Second)
-		logger.Debug("restart the cluster")
-		for i := 0; i < count; i++ {
-			if s, err := startRaftNode(uint16(i+1), ports[i], tmpWorkingDir, nodeKeys[i], peers); err != nil {
-				t.Fatal(err)
-			} else {
-				raftNodes[i] = s
-			}
+	//time.Sleep(3 * time.Second)
+	logger.Debug("restart the cluster")
+	for i := 0; i < count; i++ {
+		//t.Log("peer", i, "nodeKey", nodeKeys[i])
+		// Encore, startRaftNode need empty datadir
+		if s, err := startRaftNode(uint16(i+4), ports[i], tmpWorkingDir, nodeKeys[i], peers); err != nil {
+			t.Fatal(err)
+		} else {
+			raftNodes[i] = s
 		}
-		logger.Debug("restart the cluster done")
-		waitFunc()
-	*/
+	}
+	logger.Debug("restart the cluster done")
+	waitFunc()
 }
 
 func isWalDirStillLocked(walDir string) bool {
@@ -169,6 +169,11 @@ func prepareServiceContext(key *ecdsa.PrivateKey) (ctx *node.ServiceContext, cfg
 
 func startRaftNode(id, port uint16, tmpWorkingDir string, key *ecdsa.PrivateKey, nodes []*enode.Node) (*RaftService, error) {
 	datadir := fmt.Sprintf("%s/node%d", tmpWorkingDir, id)
+	// Encore
+	// restart raft cluster need empty datadir
+	if id > 3 {
+		id -= 3
+	}
 
 	ctx, _, err := prepareServiceContext(key)
 	if err != nil {
