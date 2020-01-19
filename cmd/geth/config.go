@@ -139,7 +139,9 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	}
 	utils.SetShhConfig(ctx, stack, &cfg.Shh)
 	cfg.Eth.RaftMode = ctx.GlobalBool(utils.RaftModeFlag.Name)
-	log.Info("RaftMode", cfg.Eth.RaftMode)
+	if cfg.Eth.RaftMode {
+		log.Info("RaftMode ... Raft consensus")
+	}
 	utils.SetDashboardConfig(ctx, &cfg.Dashboard)
 
 	return stack, cfg
