@@ -798,7 +798,8 @@ func (pm *ProtocolManager) addPeer(address *Address) {
 	}
 
 	// Add P2P connection:
-	p2pNode := enode.NewV4Hostname(pubKey, address.Hostname, int(address.P2pPort), 0, int(address.RaftPort))
+	//p2pNode := enode.NewV4Hostname(pubKey, address.Hostname, int(address.P2pPort), 0, int(address.RaftPort))
+	p2pNode := enode.NewV4(pubKey, address.Ip, int(address.P2pPort), 0, int(address.RaftPort))
 	pm.p2pServer.AddPeer(p2pNode)
 
 	// Add raft transport connection:

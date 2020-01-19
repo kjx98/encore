@@ -84,18 +84,6 @@ func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int, raftPort int) *Node
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
 	}
-	return newV4(pubkey, r, tcp, udp, raftPort)
-	signV4Compat(&r, pubkey)
-	n, err := New(v4CompatID{}, &r)
-	if err != nil {
-		panic(err)
-	}
-	return n
-}
-
-// broken out from `func NewV4` (above) same in upstream go-ethereum, but taken out
-// to avoid code duplication b/t NewV4 and NewV4Hostname
-func newV4(pubkey *ecdsa.PublicKey, r enr.Record, tcp, udp, raftPort int) *Node {
 	if udp != 0 {
 		r.Set(enr.UDP(udp))
 	}
@@ -103,7 +91,7 @@ func newV4(pubkey *ecdsa.PublicKey, r enr.Record, tcp, udp, raftPort int) *Node 
 		r.Set(enr.TCP(tcp))
 	}
 
-	if raftPort != 0 { // Quorum
+	if raftPort != 0 { // Encore
 		r.Set(enr.RaftPort(raftPort))
 	}
 
@@ -116,7 +104,7 @@ func newV4(pubkey *ecdsa.PublicKey, r enr.Record, tcp, udp, raftPort int) *Node 
 }
 
 // Encore
-
+/*
 // NewV4Hostname creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature. It sets the hostname of
 // the node instead of the IP address.
@@ -127,7 +115,7 @@ func NewV4Hostname(pubkey *ecdsa.PublicKey, hostname string, tcp, udp, raftPort 
 	}
 	return newV4(pubkey, r, tcp, udp, raftPort)
 }
-
+*/
 // End-Encore
 
 // isNewV4 returns true for nodes created by NewV4.
@@ -179,21 +167,17 @@ func parseComplete(rawurl string) (*Node, error) {
 		}
 	}
 
-	var node *Node
-
 	// Encore
 	if qv.Get("raftport") != "" {
 		raftPort, err := strconv.ParseUint(qv.Get("raftport"), 10, 16)
 		if err != nil {
 			return nil, errors.New("invalid raftport in query")
 		}
-		node = NewV4Hostname(id, u.Hostname(), int(tcpPort), int(udpPort), int(raftPort))
-	} else {
-		node = NewV4Hostname(id, u.Hostname(), int(tcpPort), int(udpPort), 0)
+		return NewV4(id, ip, int(tcpPort), int(udpPort), int(raftPort)), nil
 	}
 	// End-Encore
 
-	return node, nil
+	return NewV4(id, ip, int(tcpPort), int(udpPort), 0), nil
 }
 
 func HexPubkey(h string) (*ecdsa.PublicKey, error) {
