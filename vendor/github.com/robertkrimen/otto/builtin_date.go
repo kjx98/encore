@@ -11,7 +11,7 @@ const (
 	// TODO Be like V8?
 	// builtinDate_goDateTimeLayout = "Mon Jan 2 2006 15:04:05 GMT-0700 (MST)"
 	//builtinDate_goDateTimeLayout = Time.RFC1123 // "Mon, 02 Jan 2006 15:04:05 MST"
-	builtinDate_goDateTimeLayout = "Mon, 02 Jan 2006 15:04:05.000 MST"
+	builtinDate_goDateTimeLayout = "2006-01-02T15:04:05.999-07:00"
 	builtinDate_goDateLayout     = "Mon, 02 Jan 2006"
 	builtinDate_goTimeLayout     = "15:04:05 MST"
 )

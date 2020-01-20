@@ -282,7 +282,7 @@ func (c *Console) Welcome() {
 		try {
 			message += "coinbase: " + eth.coinbase + "\n";
 		} catch (err) {}
-		message += "at block: " + eth.blockNumber + " (" + new Date(eth.getBlock(eth.blockNumber).timestampMS) + ")\n";
+		message += "at block: " + eth.blockNumber + " (" + new Date(1000*eth.getBlock(eth.blockNumber).timestamp) + ")\n";
 		try {
 			message += " datadir: " + admin.datadir + "\n";
 		} catch (err) {}
