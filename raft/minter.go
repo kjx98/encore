@@ -240,7 +240,8 @@ func (minter *minter) mintingLoop() {
 
 func generateMilliTimestamp(parent *types.Block) (tstamp uint64) {
 	parentTime := parent.TimeMilli()
-	tstamp = uint64(time.Now().Unix()*1000 + int64(time.Now().Nanosecond()/1000000))
+	tNow := time.Now()
+	tstamp = uint64(tNow.Unix()*1000 + int64(tNow.Nanosecond()/1000000))
 
 	if parentTime >= tstamp {
 		// Each successive block needs to be after its predecessor.

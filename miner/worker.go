@@ -846,6 +846,8 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		time.Sleep(wait)
 	}
 
+	timestamp *= 1000
+	timestamp += int64(time.Now().Nanosecond() / 1000000)
 	num := parent.Number()
 	header := &types.Header{
 		ParentHash: parent.Hash(),

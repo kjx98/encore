@@ -545,9 +545,11 @@ func (c *Clique) Prepare(chain consensus.ChainReader, header *types.Header) erro
 	}
 	// Encore
 	header.TimeMilli = (parent.Time() + c.config.Period) * 1000
-	if header.Time() < uint64(time.Now().Unix()) {
-		header.TimeMilli = uint64(time.Now().Unix()) * 1000
+	tNow := time.Now()
+	if header.Time() < uint64(tNow.Unix()) {
+		header.TimeMilli = uint64(tNow.Unix()) * 1000
 	}
+	header.TimeMilli += uint64(tNow.Nanosecond() / 1000000)
 	// End Encore
 	return nil
 }
