@@ -252,7 +252,7 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 	}
 	// raft may generates blocks within a second, allow equal valid or chage
 	// timestamp to nanoseconds
-	if header.Time() < parent.Time() {
+	if header.TimeMilli <= parent.TimeMilli {
 		return errZeroBlockTime
 	}
 	// Verify the block's difficulty based in its timestamp and parent's difficulty
