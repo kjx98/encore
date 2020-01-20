@@ -17,7 +17,7 @@ var (
 	}
 )
 
-func openQuorumRaftDb(path string) (db *leveldb.DB, err error) {
+func openEncoreRaftDb(path string) (db *leveldb.DB, err error) {
 	// Open the db and recover any potential corruptions
 	db, err = leveldb.OpenFile(path, &opt.Options{
 		OpenFilesCacheCapacity: -1, // -1 means 0??
@@ -30,7 +30,7 @@ func openQuorumRaftDb(path string) (db *leveldb.DB, err error) {
 }
 
 func (pm *ProtocolManager) loadAppliedIndex() uint64 {
-	dat, err := pm.quorumRaftDb.Get(appliedDbKey, nil)
+	dat, err := pm.encoreRaftDb.Get(appliedDbKey, nil)
 	var lastAppliedIndex uint64
 	if err == errors.ErrNotFound {
 		lastAppliedIndex = 0
@@ -53,5 +53,5 @@ func (pm *ProtocolManager) writeAppliedIndex(index uint64) {
 	log.Info("persisted the latest applied index", "index", index)
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, index)
-	pm.quorumRaftDb.Put(appliedDbKey, buf, noFsync)
+	pm.encoreRaftDb.Put(appliedDbKey, buf, noFsync)
 }

@@ -89,7 +89,7 @@ type ProtocolManager struct {
 	wal    *wal.WAL
 
 	// Storage
-	quorumRaftDb *leveldb.DB             // Persistent storage for last-applied raft index
+	encoreRaftDb *leveldb.DB             // Persistent storage for last-applied raft index
 	raftStorage  *etcdRaft.MemoryStorage // Volatile raft storage
 }
 
@@ -102,7 +102,7 @@ var errNoLeaderElected = errors.New("no leader is currently elected")
 func NewProtocolManager(raftId uint16, raftPort uint16, blockchain *core.BlockChain, mux *event.TypeMux, bootstrapNodes []*enode.Node, joinExisting bool, datadir string, minter *minter, downloader *downloader.Downloader, useDns bool) (*ProtocolManager, error) {
 	waldir := fmt.Sprintf("%s/raft-wal", datadir)
 	snapdir := fmt.Sprintf("%s/raft-snap", datadir)
-	quorumRaftDbLoc := fmt.Sprintf("%s/quorum-raft-state", datadir)
+	encoreRaftDbLoc := fmt.Sprintf("%s/encore-raft-state", datadir)
 
 	manager := &ProtocolManager{
 		bootstrapNodes:      bootstrapNodes,
@@ -128,10 +128,10 @@ func NewProtocolManager(raftId uint16, raftPort uint16, blockchain *core.BlockCh
 		useDns:              useDns,
 	}
 
-	if db, err := openQuorumRaftDb(quorumRaftDbLoc); err != nil {
+	if db, err := openEncoreRaftDb(encoreRaftDbLoc); err != nil {
 		return nil, err
 	} else {
-		manager.quorumRaftDb = db
+		manager.encoreRaftDb = db
 	}
 
 	return manager, nil
@@ -178,7 +178,7 @@ func (pm *ProtocolManager) Stop() {
 		pm.unsafeRawNode.Stop()
 	}
 
-	pm.quorumRaftDb.Close()
+	pm.encoreRaftDb.Close()
 
 	pm.p2pServer = nil
 
@@ -790,7 +790,7 @@ func (pm *ProtocolManager) addPeer(address *Address) {
 
 	raftId := address.RaftId
 
-	//Quorum - RAFT - derive pubkey from nodeId
+	//Encore - RAFT - derive pubkey from nodeId
 	pubKey, err := enode.HexPubkey(address.NodeId.String())
 	if err != nil {
 		log.Error("error decoding pub key from enodeId", "enodeId", address.NodeId.String(), "err", err)
