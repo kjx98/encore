@@ -102,7 +102,7 @@ var errNoLeaderElected = errors.New("no leader is currently elected")
 func NewProtocolManager(raftId uint16, raftPort uint16, blockchain *core.BlockChain, mux *event.TypeMux, bootstrapNodes []*enode.Node, joinExisting bool, datadir string, minter *minter, downloader *downloader.Downloader, useDns bool) (*ProtocolManager, error) {
 	waldir := fmt.Sprintf("%s/raft-wal", datadir)
 	snapdir := fmt.Sprintf("%s/raft-snap", datadir)
-	encoreRaftDbLoc := fmt.Sprintf("%s/encore-raft-state", datadir)
+	encoreRaftDbLoc := fmt.Sprintf("%s/raft-state", datadir)
 
 	manager := &ProtocolManager{
 		bootstrapNodes:      bootstrapNodes,

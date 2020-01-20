@@ -113,7 +113,7 @@ func isWalDirStillLocked(walDir string) bool {
 }
 
 func writeAppliedIndex(workingDir string, node int, index uint64) error {
-	db, err := openEncoreRaftDb(fmt.Sprintf("%s/node%d/encore-raft-state", workingDir, node+1))
+	db, err := openEncoreRaftDb(fmt.Sprintf("%s/node%d/raft-state", workingDir, node+1))
 	if err != nil {
 		return err
 	}

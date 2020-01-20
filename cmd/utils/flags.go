@@ -1582,6 +1582,7 @@ func RegisterEthService(stack *node.Node, cfg *eth.Config) <-chan *eth.Ethereum 
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
 			}
+			nodeChan <- fullNode
 			return fullNode, err
 		})
 	}

@@ -260,7 +260,7 @@ func (minter *minter) createWork() *work {
 	header := &types.Header{
 		ParentHash: parent.Hash(),
 		Number:     parentNumber.Add(parentNumber, common.Big1),
-		Difficulty: ethash.CalcDifficulty(minter.config, uint64(tstamp), parent.Header()),
+		Difficulty: ethash.CalcDifficulty(minter.config, uint64(tstamp/1000), parent.Header()),
 		GasLimit:   minter.eth.calcGasLimitFunc(parent),
 		GasUsed:    0,
 		Coinbase:   minter.coinbase,
@@ -336,6 +336,7 @@ func (minter *minter) mintNewBlock() {
 		l.BlockHash = headerHash
 	}
 
+	// Encore, comment out Extra, or may keep headerHash
 	//Sign the block and build the extraSeal struct
 	extraSealBytes := minter.buildExtraSeal(headerHash)
 
