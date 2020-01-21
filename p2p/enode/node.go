@@ -131,7 +131,7 @@ func (n *Node) UDP() int {
 	return int(port)
 }
 
-// used by Quorum RAFT - returns the Raft port of the node
+// used by Encore RAFT - returns the Raft port of the node
 func (n *Node) RaftPort() int {
 	var port enr.RaftPort
 	err := n.Load(&port)
@@ -287,7 +287,7 @@ func HexID(in string) ID {
 	return id
 }
 
-// used by Quorum RAFT to derive 64 byte nodeId from 128 byte enodeID
+// used by Encore RAFT to derive 64 byte nodeId from 128 byte enodeID
 func RaftHexID(in string) (EnodeID, error) {
 	var id EnodeID
 	b, err := hex.DecodeString(strings.TrimPrefix(in, "0x"))

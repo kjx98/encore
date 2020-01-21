@@ -155,7 +155,6 @@ var (
 		utils.RaftJoinExistingFlag,
 		utils.RaftPortFlag,
 		utils.RaftDNSEnabledFlag,
-		utils.EmitCheckpointsFlag,
 		// End-Encore
 	}
 

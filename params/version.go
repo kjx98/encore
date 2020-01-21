@@ -69,11 +69,9 @@ func VersionWithCommit(gitCommit, gitDate string) string {
 		vsn += "-" + gitCommit[:8]
 	}
 	// Encore
-	/*
-		if (VersionMeta != "stable") && (gitDate != "") {
-			vsn += "-" + gitDate
-		}
-	*/
-	vsn += "(encore-v" + EncoreVersion + ")"
+	if (VersionMeta != "stable") && (gitDate != "") {
+		vsn += "-" + gitDate
+	}
+	//vsn += "(encore-v" + EncoreVersion + ")"
 	return vsn
 }

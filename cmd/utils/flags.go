@@ -718,10 +718,6 @@ var (
 		Value: 0,
 	}
 
-	EmitCheckpointsFlag = cli.BoolFlag{
-		Name:  "emitcheckpoints",
-		Usage: "If enabled, emit specially formatted logging checkpoints",
-	}
 	RaftPortFlag = cli.IntFlag{
 		Name:  "raftport",
 		Usage: "The port to bind for the raft transport",

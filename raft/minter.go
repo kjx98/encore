@@ -267,6 +267,7 @@ func (minter *minter) createWork() *work {
 		TimeMilli:  tstamp,
 	}
 
+	log.Debug("Raft new worker gas", "number", header.GasLimit)
 	state, err := minter.chain.StateAt(parent.Root())
 	if err != nil {
 		panic(fmt.Sprint("failed to get parent state: ", err))
@@ -368,6 +369,8 @@ func (env *work) commitTransactions(txes *types.TransactionsByPriceAndNonce, bc 
 	var receipts types.Receipts
 
 	gp := new(core.GasPool).AddGas(env.header.GasLimit)
+	gp.AddGas(env.header.GasLimit)
+	log.Debug("Raft commit GasPool", "number", gp.Gas())
 	txCount := 0
 
 	for {

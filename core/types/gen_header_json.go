@@ -9,7 +9,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 var _ = (*headerMarshaling)(nil)
@@ -125,7 +124,6 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	}
 	h.GasUsed = uint64(*dec.GasUsed)
 	if dec.TimeMilli != nil {
-		log.Info("Got TimeMilli of header from json")
 		h.TimeMilli = uint64(*dec.TimeMilli)
 	} else {
 		if dec.Time == nil {

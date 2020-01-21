@@ -430,7 +430,6 @@ func (c *Config) parsePersistentNodes(w *bool, path string) []*enode.Node {
 			log.Error(fmt.Sprintf("Node URL %s: %v\n", url, err))
 			continue
 		}
-		log.Info(fmt.Sprintf("Add Node URL %s: %v\n", url, node.IP()))
 		nodes = append(nodes, node)
 	}
 	return nodes

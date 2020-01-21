@@ -47,7 +47,7 @@ type EthAPIBackend struct {
 	// Encore
 	//
 	// hex node id from node public key
-	hexNodeId string
+	//hexNodeId string
 }
 
 // ChainConfig returns the active chain configuration.
@@ -293,14 +293,12 @@ func (b *EthAPIBackend) ProtocolVersion() int {
 }
 
 func (b *EthAPIBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
-	/*
-		if b.ChainConfig().IsEncore {
-			return big.NewInt(0), nil
-		} else {
-			return b.gpo.SuggestPrice(ctx)
-		}
-	*/
-	return b.gpo.SuggestPrice(ctx)
+	if b.ChainConfig().IsEncore {
+		return big.NewInt(0), nil
+	} else {
+		return b.gpo.SuggestPrice(ctx)
+	}
+	//return b.gpo.SuggestPrice(ctx)
 }
 
 func (b *EthAPIBackend) ChainDb() ethdb.Database {

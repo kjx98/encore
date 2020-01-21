@@ -270,6 +270,10 @@ func RegisterRaftService(stack *node.Node, ctx *cli.Context, cfg gethConfig, eth
 		}
 
 		ethereum := <-ethChan
+		if !ethereum.ChainConfig().IsEncore {
+			log.Warn("Genesis is not Encore, force to Encore chain")
+			ethereum.ChainConfig().IsEncore = true
+		}
 		return raft.New(ctx, ethereum.ChainConfig(), myId, raftPort, joinExisting, blockTimeNanos, ethereum, peers, datadir, useDns)
 	}); err != nil {
 		utils.Fatalf("Failed to register the Raft service: %v", err)

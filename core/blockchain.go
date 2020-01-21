@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	//"math"
 	"math/big"
 	mrand "math/rand"
 	"sync"
@@ -481,6 +482,14 @@ func (bc *BlockChain) FastSyncCommitHead(hash common.Hash) error {
 
 // GasLimit returns the gas limit of the current HEAD block.
 func (bc *BlockChain) GasLimit() uint64 {
+	/*
+		if bc.Config().IsEncore {
+			log.Info("GasLimit changed to MaxUint64")
+			return math.MaxUint64 // HACK(joel) a very large number
+		} else {
+			return bc.CurrentBlock().GasLimit()
+		}
+	*/
 	return bc.CurrentBlock().GasLimit()
 }
 
