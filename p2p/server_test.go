@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -150,7 +151,7 @@ func TestServerDial(t *testing.T) {
 
 	// tell the server to connect
 	tcpAddr := listener.Addr().(*net.TCPAddr)
-	node := enode.NewV4(remid, tcpAddr.IP, tcpAddr.Port, 0)
+	node := enode.NewV4(remid, tcpAddr.IP, tcpAddr.Port, 0, 0)
 	srv.AddPeer(node)
 
 	select {
@@ -421,7 +422,7 @@ func TestServerAtCap(t *testing.T) {
 func TestServerPeerLimits(t *testing.T) {
 	srvkey := newkey()
 	clientkey := newkey()
-	clientnode := enode.NewV4(&clientkey.PublicKey, nil, 0, 0)
+	clientnode := enode.NewV4(&clientkey.PublicKey, nil, 0, 0, 0)
 
 	var tp = &setupTransport{
 		pubkey: &clientkey.PublicKey,
@@ -512,21 +513,21 @@ func TestServerSetupConn(t *testing.T) {
 		},
 		{
 			tt:           &setupTransport{pubkey: clientpub},
-			dialDest:     enode.NewV4(&newkey().PublicKey, nil, 0, 0),
+			dialDest:     enode.NewV4(&newkey().PublicKey, nil, 0, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: DiscUnexpectedIdentity,
 		},
 		{
 			tt:           &setupTransport{pubkey: clientpub, phs: protoHandshake{ID: randomID().Bytes()}},
-			dialDest:     enode.NewV4(clientpub, nil, 0, 0),
+			dialDest:     enode.NewV4(clientpub, nil, 0, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: DiscUnexpectedIdentity,
 		},
 		{
 			tt:           &setupTransport{pubkey: clientpub, protoHandshakeErr: errors.New("foo")},
-			dialDest:     enode.NewV4(clientpub, nil, 0, 0),
+			dialDest:     enode.NewV4(clientpub, nil, 0, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: errors.New("foo"),
@@ -576,6 +577,37 @@ func TestServerSetupConn(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServerSetupConn_whenNotInRaftCluster(t *testing.T) {
+	var (
+		clientkey, srvkey = newkey(), newkey()
+		clientpub         = &clientkey.PublicKey
+	)
+
+	clientNode := enode.NewV4(clientpub, nil, 0, 0, 0)
+	srv := &Server{
+		Config: Config{
+			PrivateKey:  srvkey,
+			NoDiscovery: true,
+		},
+		newTransport: func(fd net.Conn) transport { return newTestTransport(clientpub, fd) },
+		log:          log.New(),
+		checkPeerInRaft: func(node *enode.Node) bool {
+			return false
+		},
+	}
+	if err := srv.Start(); err != nil {
+		t.Fatalf("couldn't start server: %v", err)
+	}
+	defer srv.Stop()
+	p1, _ := net.Pipe()
+	err := srv.SetupConn(p1, inboundConn, clientNode)
+
+	assert.IsType(t, &peerError{}, err)
+	perr := err.(*peerError)
+	t.Log(perr.Error())
+	assert.Equal(t, errNotInRaftCluster, perr.code)
 }
 
 type setupTransport struct {

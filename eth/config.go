@@ -137,6 +137,8 @@ type Config struct {
 	// Enables tracking of SHA3 preimages in the VM
 	EnablePreimageRecording bool
 
+	RaftMode bool
+
 	// Miscellaneous options
 	DocRoot string `toml:"-"`
 

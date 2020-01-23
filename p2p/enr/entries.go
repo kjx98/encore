@@ -40,6 +40,15 @@ type generic struct {
 
 func (g generic) ENRKey() string { return g.key }
 
+// RaftPort is the "raftport" key, which holds the raftport of the node
+type RaftPort uint16
+
+func (v RaftPort) ENRKey() string { return "raftport" }
+
+type Hostname string
+
+func (v Hostname) ENRKey() string { return "hostname" }
+
 func (g generic) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, g.value)
 }

@@ -115,11 +115,34 @@ func (n *Node) IP() net.IP {
 	return nil
 }
 
+// Encore
+func (n *Node) Host() string {
+	var hostname string
+	n.Load((*enr.Hostname)(&hostname))
+	return hostname
+}
+
+// End-Encore
+
 // UDP returns the UDP port of the node.
 func (n *Node) UDP() int {
 	var port enr.UDP
 	n.Load(&port)
 	return int(port)
+}
+
+// used by Encore RAFT - returns the Raft port of the node
+func (n *Node) RaftPort() int {
+	var port enr.RaftPort
+	err := n.Load(&port)
+	if err != nil {
+		return 0
+	}
+	return int(port)
+}
+
+func (n *Node) HasRaftPort() bool {
+	return n.RaftPort() > 0
 }
 
 // UDP returns the TCP port of the node.
@@ -187,6 +210,34 @@ func (n *Node) UnmarshalText(text []byte) error {
 	return err
 }
 
+// ID is a unique identifier for each node used by RAFT
+type EnodeID [64]byte
+
+// ID prints as a long hexadecimal number.
+func (n EnodeID) String() string {
+	return fmt.Sprintf("%x", n[:])
+}
+
+// The Go syntax representation of a ID is a call to HexID.
+func (n EnodeID) GoString() string {
+	return fmt.Sprintf("enode.HexID(\"%x\")", n[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n EnodeID) MarshalText() ([]byte, error) {
+	return []byte(hex.EncodeToString(n[:])), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *EnodeID) UnmarshalText(text []byte) error {
+	id, err := RaftHexID(string(text))
+	if err != nil {
+		return err
+	}
+	*n = id
+	return nil
+}
+
 // ID is a unique identifier for each node.
 type ID [32]byte
 
@@ -234,6 +285,20 @@ func HexID(in string) ID {
 		panic(err)
 	}
 	return id
+}
+
+// used by Encore RAFT to derive 64 byte nodeId from 128 byte enodeID
+func RaftHexID(in string) (EnodeID, error) {
+	var id EnodeID
+	b, err := hex.DecodeString(strings.TrimPrefix(in, "0x"))
+	if err != nil {
+		return id, err
+	} else if len(b) != len(id) {
+		return id, fmt.Errorf("wrong length, want %d hex chars", len(id)*2)
+	}
+
+	copy(id[:], b)
+	return id, nil
 }
 
 func parseID(in string) (ID, error) {

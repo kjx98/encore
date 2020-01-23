@@ -21,10 +21,13 @@ import (
 )
 
 const (
-	VersionMajor = 1        // Major version component of the current release
-	VersionMinor = 9        // Minor version component of the current release
-	VersionPatch = 7        // Patch version component of the current release
-	VersionMeta  = "stable" // Version metadata to append to the version string
+	VersionMajor       = 1        // Major version component of the current release
+	VersionMinor       = 9        // Minor version component of the current release
+	VersionPatch       = 7        // Patch version component of the current release
+	VersionMeta        = "stable" // Version metadata to append to the version string
+	EncoreVersionMajor = 1
+	EncoreVersionMinor = 0
+	EncoreVersionPatch = 0
 )
 
 // Version holds the textual version string.
@@ -39,6 +42,11 @@ var VersionWithMeta = func() string {
 		v += "-" + VersionMeta
 	}
 	return v
+}()
+
+// Version holds the textual version string.
+var EncoreVersion = func() string {
+	return fmt.Sprintf("%d.%d.%d", EncoreVersionMajor, EncoreVersionMinor, EncoreVersionPatch)
 }()
 
 // ArchiveVersion holds the textual version string used for Geth archives.
@@ -60,8 +68,10 @@ func VersionWithCommit(gitCommit, gitDate string) string {
 	if len(gitCommit) >= 8 {
 		vsn += "-" + gitCommit[:8]
 	}
+	// Encore
 	if (VersionMeta != "stable") && (gitDate != "") {
 		vsn += "-" + gitDate
 	}
+	//vsn += "(encore-v" + EncoreVersion + ")"
 	return vsn
 }

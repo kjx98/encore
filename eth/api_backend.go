@@ -43,6 +43,11 @@ type EthAPIBackend struct {
 	extRPCEnabled bool
 	eth           *Ethereum
 	gpo           *gasprice.Oracle
+
+	// Encore
+	//
+	// hex node id from node public key
+	//hexNodeId string
 }
 
 // ChainConfig returns the active chain configuration.
@@ -96,6 +101,10 @@ func (b *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*ty
 func (b *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, error) {
 	// Pending block is only known by the miner
 	if number == rpc.PendingBlockNumber {
+		if b.eth.protocolManager.raftMode {
+			// Use latest instead.
+			return b.eth.blockchain.CurrentBlock(), nil
+		}
 		block := b.eth.miner.PendingBlock()
 		return block, nil
 	}
@@ -134,6 +143,15 @@ func (b *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash r
 func (b *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
 	// Pending state is only known by the miner
 	if number == rpc.PendingBlockNumber {
+		if b.eth.protocolManager.raftMode {
+			// Use latest instead.
+			header, err := b.HeaderByNumber(ctx, rpc.LatestBlockNumber)
+			if header == nil || err != nil {
+				return nil, nil, err
+			}
+			stateDB, err := b.eth.BlockChain().StateAt(header.Root)
+			return stateDB, header, err
+		}
 		block, state := b.eth.miner.Pending()
 		return state, block.Header(), nil
 	}
@@ -219,6 +237,13 @@ func (b *EthAPIBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscri
 }
 
 func (b *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {
+	// validation for node need to happen here and cannot be done as a part of
+	// validateTx in tx_pool.go as tx_pool validation will happen in every node
+	/*
+		if b.hexNodeId != "" && !types.ValidateNodeForTxn(b.hexNodeId, signedTx.From()) {
+			return errors.New("cannot send transaction from this node")
+		}
+	*/
 	return b.eth.txPool.AddLocal(signedTx)
 }
 
@@ -268,7 +293,12 @@ func (b *EthAPIBackend) ProtocolVersion() int {
 }
 
 func (b *EthAPIBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
-	return b.gpo.SuggestPrice(ctx)
+	if b.ChainConfig().IsEncore {
+		return big.NewInt(0), nil
+	} else {
+		return b.gpo.SuggestPrice(ctx)
+	}
+	//return b.gpo.SuggestPrice(ctx)
 }
 
 func (b *EthAPIBackend) ChainDb() ethdb.Database {

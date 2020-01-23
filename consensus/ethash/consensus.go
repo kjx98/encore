@@ -249,6 +249,8 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 			return consensus.ErrFutureBlock
 		}
 	}
+	// raft may generates blocks within a second, allow equal valid or chage
+	// timestamp to nanoseconds
 	if header.TimeMilli <= parent.TimeMilli {
 		return errZeroBlockTime
 	}
@@ -487,6 +489,7 @@ func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Head
 // either using the usual ethash cache for it, or alternatively using a full DAG
 // to make remote mining fast.
 func (ethash *Ethash) verifySeal(chain consensus.ChainReader, header *types.Header, fulldag bool) error {
+	isEncore := chain != nil && chain.Config().IsEncore
 	// If we're running a fake PoW, accept any seal as valid
 	if ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake {
 		time.Sleep(ethash.fakeDelay)
@@ -539,12 +542,14 @@ func (ethash *Ethash) verifySeal(chain consensus.ChainReader, header *types.Head
 		runtime.KeepAlive(cache)
 	}
 	// Verify the calculated values against the ones provided in the header
-	if !bytes.Equal(header.MixDigest[:], digest) {
+	if !isEncore && !bytes.Equal(header.MixDigest[:], digest) {
 		return errInvalidMixDigest
 	}
 	target := new(big.Int).Div(two256, header.Difficulty)
 	if new(big.Int).SetBytes(result).Cmp(target) > 0 {
-		return errInvalidPoW
+		if !isEncore {
+			return errInvalidPoW
+		}
 	}
 	return nil
 }
@@ -564,7 +569,7 @@ func (ethash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header)
 // setting the final state on the header
 func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header) {
 	// Accumulate any block and uncle rewards and commit the final state root
-	accumulateRewards(chain.Config(), state, header, uncles)
+	AccumulateRewards(chain.Config(), state, header, uncles)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 }
 
@@ -572,7 +577,7 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
 // uncle rewards, setting the final state and assembling the block.
 func (ethash *Ethash) FinalizeAndAssemble(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
-	accumulateRewards(chain.Config(), state, header, uncles)
+	AccumulateRewards(chain.Config(), state, header, uncles)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 
 	// Header seems complete, assemble into a block and return
@@ -612,7 +617,7 @@ var (
 // AccumulateRewards credits the coinbase of the given block with the mining
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
-func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+func AccumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
 	// Select the correct block reward based on chain progression
 	blockReward := FrontierBlockReward
 	if config.IsByzantium(header.Number) {
