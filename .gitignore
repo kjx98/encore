@@ -22,6 +22,8 @@ build/_vendor/pkg
 .project
 .settings
 *.wasm
+*.o
+*.so
 
 # used by the Makefile
 /build/_workspace/
