@@ -324,13 +324,28 @@ func (evm *EVMC) Run(contract *Contract, input []byte, readOnly bool) (ret []byt
 		// Guess if this is a CREATE.
 		kind = evmc.Create
 		// Encore, validate ewasm module
-		var mod wasm.ValModule
+		//mod := wasm.ValModule{OnlyValidate: true, OnlyRelease: true}
+		mod := wasm.ValModule{OnlyValidate: true}
 		if err := mod.ReadValModule(contract.Code); err != nil {
+			log.Error("ewasm ReadValModule", "error", err)
 			return nil, err
 		}
 		if err := mod.Validate(); err != nil {
+			log.Error("ewasm Validate", "error", err)
 			return nil, err
 		}
+		if mod.HasDebug() {
+			log.Warn("contract imported debug module, deploy may fail")
+		}
+		// Cannot change contract code here, strip should be done before sign
+		/*
+			ocLen := len(contract.Code)
+			if ncLen := len(mod.Bytes()); ncLen < ocLen {
+				contract.Code = mod.Bytes()
+				log.Info("ewasm contract stripped", "old CodeLen", ocLen,
+					"stripped bytes", ocLen-ncLen)
+			}
+		*/
 	}
 
 	// Make sure the readOnly is only set if we aren't in readOnly yet.
@@ -340,7 +355,6 @@ func (evm *EVMC) Run(contract *Contract, input []byte, readOnly bool) (ret []byt
 		defer func() { evm.readOnly = false }()
 	}
 
-	log.Debug("EVMC VM Run", "gas", contract.Gas, "kind", kind, "input_len", len(input))
 	output, gasLeft, err := evm.instance.Execute(
 		&hostContext{evm.env, contract},
 		getRevision(evm.env),
