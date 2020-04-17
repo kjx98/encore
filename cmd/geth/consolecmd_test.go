@@ -52,7 +52,7 @@ func TestConsoleWelcome(t *testing.T) {
 	geth.SetTemplateFunc("gover", runtime.Version)
 	geth.SetTemplateFunc("gethver", func() string { return params.VersionWithCommit("", "") })
 	geth.SetTemplateFunc("niltime", func() string {
-		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
+		return time.Unix(0, 0).UTC().Format("2006-01-02T15:04:05.000Z")
 	})
 	geth.SetTemplateFunc("apis", func() string { return ipcAPIs })
 
@@ -145,7 +145,7 @@ func testAttachWelcome(t *testing.T, geth *testgeth, endpoint, apis string) {
 	attach.SetTemplateFunc("gethver", func() string { return params.VersionWithCommit("", "") })
 	attach.SetTemplateFunc("etherbase", func() string { return geth.Etherbase })
 	attach.SetTemplateFunc("niltime", func() string {
-		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
+		return time.Unix(0, 0).UTC().Format("2006-01-02T15:04:05.000Z")
 	})
 	attach.SetTemplateFunc("ipc", func() bool { return strings.HasPrefix(endpoint, "ipc") })
 	attach.SetTemplateFunc("datadir", func() string { return geth.Datadir })

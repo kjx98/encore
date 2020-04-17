@@ -240,6 +240,7 @@ func (s *Service) loop() {
 		}
 		// Keep sending status updates until the connection breaks
 		fullReport := time.NewTicker(15 * time.Second)
+		defer fullReport.Stop()
 
 		for err == nil {
 			select {
@@ -557,7 +558,7 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		Number:     header.Number,
 		Hash:       header.Hash(),
 		ParentHash: header.ParentHash,
-		Timestamp:  new(big.Int).SetUint64(header.Time),
+		Timestamp:  new(big.Int).SetUint64(header.Time()),
 		Miner:      author,
 		GasUsed:    header.GasUsed,
 		GasLimit:   header.GasLimit,
